@@ -1,2 +1,19 @@
-import test from "node:test";import assert from "node:assert/strict";import{ControlPlane}from"../src/engine.js";
-test("high risk tools require approval and emit audit events",async()=>{const plane=new ControlPlane();plane.registerTool("payment.refund",async input=>({refunded:input.amount}));const wf=plane.create("refund",[{tool:"payment.refund",input:{amount:100},risk:"high"}]);await assert.rejects(()=>plane.run(wf.id),/approval/);plane.approve(wf.id);assert.deepEqual(await plane.run(wf.id),[{refunded:100}]);assert.deepEqual(plane.audit.map(e=>e.action),["created","approved","tool.executed","completed"])});
+import test from "node:test";
+import assert from "node:assert/strict";
+import { ControlPlane } from "../src/engine.js";
+test("high risk tools require approval and emit audit events", async () => {
+  const plane = new ControlPlane();
+  plane.registerTool("payment.refund", async (input) => ({
+    refunded: input.amount,
+  }));
+  const wf = plane.create("refund", [
+    { tool: "payment.refund", input: { amount: 100 }, risk: "high" },
+  ]);
+  await assert.rejects(() => plane.run(wf.id), /approval/);
+  plane.approve(wf.id);
+  assert.deepEqual(await plane.run(wf.id), [{ refunded: 100 }]);
+  assert.deepEqual(
+    plane.audit.map((e) => e.action),
+    ["created", "approved", "tool.executed", "completed"],
+  );
+});
